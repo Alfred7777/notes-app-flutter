@@ -12,7 +12,24 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Notes App',
-      home: HomeScreen(),
+      home: const HomeScreen(),
+      theme: ThemeData(
+        colorScheme: ColorScheme(
+          brightness: Brightness.dark, 
+          primary: Colors.blueGrey.shade900, 
+          onPrimary: Colors.grey.shade100, 
+          secondary: Colors.teal.shade600, 
+          onSecondary: Colors.grey.shade100, 
+          error: Colors.red.shade800, 
+          onError: Colors.grey.shade100, 
+          background: Colors.blueGrey.shade800, 
+          onBackground: Colors.grey.shade100, 
+          surface: Colors.blueGrey.shade900, 
+          onSurface: Colors.grey.shade100,
+        ),
+        scaffoldBackgroundColor: Colors.blueGrey.shade800,
+        fontFamily: 'Montserrat',
+      ),
     );
   }
 }
