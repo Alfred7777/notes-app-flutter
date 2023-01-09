@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:sqflite/sqflite.dart';
 import 'home_bloc.dart';
 import 'home_event.dart';
 import 'home_state.dart';
-import 'package:notes_app/repositories/notes_repository.dart';
+import 'package:notes_app/repositories/note_repository.dart';
 import 'package:notes_app/widgets/note_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,19 +17,21 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
-  final notesRepository = NotesRepository();
+  final NoteRepository noteRepository = NoteRepository();
   late HomeBloc _homeBloc;
 
   @override
   void initState() {
     super.initState();
     _homeBloc = HomeBloc(
-      notesRepository: notesRepository,
+      notesRepository: noteRepository,
     );
   }
 
   void _onCreateNote() {
-    
+    _homeBloc.add(
+      CreateNote(noteTitle: 'Testowa Notatka', noteContent: 'Fajna treść testowej notatki.'),
+    );
   }
 
   void _onArchiveNote(int noteID) {
@@ -71,7 +74,6 @@ class HomeScreenState extends State<HomeScreen> {
                 return NoteBar(
                   index: index,
                   note: state.noteList[index],
-                  onTap: _onArchiveNote,
                   onDoubleTap: _onArchiveNote,
                   onButtonPressed: _onArchiveNote,
                 );

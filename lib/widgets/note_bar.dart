@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/repositories/notes_repository.dart';
+import 'package:notes_app/repositories/note_repository.dart';
 
 class NoteBar extends StatelessWidget {
   final int index;
   final Note note;
-  final Function(int) onTap;
   final Function(int) onDoubleTap;
   final Function(int) onButtonPressed;
   
@@ -12,7 +11,6 @@ class NoteBar extends StatelessWidget {
     Key? key,
     required this.index,
     required this.note,
-    required this.onTap,
     required this.onDoubleTap,
     required this.onButtonPressed,
   }) : super(key: key);
@@ -20,7 +18,6 @@ class NoteBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTap(note.id),
       onDoubleTap: () => onDoubleTap(note.id),
       child: Container(
         color: note.state == 0 ? Colors.blue.shade800 : note.state == 1 ? Colors.green.shade800 : Colors.red.shade800,
@@ -45,6 +42,7 @@ class NoteBar extends StatelessWidget {
                           fontSize: 16.0,
                           fontWeight: FontWeight.bold,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                     Text(
@@ -52,6 +50,7 @@ class NoteBar extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 14.0,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),

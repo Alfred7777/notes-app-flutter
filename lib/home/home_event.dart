@@ -58,3 +58,18 @@ class ArchiveNote extends HomeEvent {
   @override
   List<Object> get props => [noteID];
 }
+
+class ChangeFilters extends HomeEvent {
+  final String nameFilter;
+  final String dateFilter;
+  final int stateFilter;
+
+  const ChangeFilters({
+    required this.nameFilter,
+    required this.dateFilter,
+    required this.stateFilter,
+  });
+
+  @override
+  List<Object> get props => [nameFilter, dateFilter, stateFilter];
+}
