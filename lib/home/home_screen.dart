@@ -30,6 +30,12 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  @override
+  void dispose() {
+    _homeBloc.close();
+    super.dispose();
+  }
+
   void _onCreateNote() async {
     final result = await Navigator.push(
       context, 
@@ -77,13 +83,36 @@ class HomeScreenState extends State<HomeScreen> {
   }
 
   void _onArchiveNote(int noteID) {
-    _homeBloc.add(ArchiveNote(noteID: noteID));
-    _homeBloc.add(
-      FetchNotes(
-        textFilter: _textFilter,
-        dateFilter: _dateFilter,
-        stateFilter: _stateFilter,
-      ),
+    showDialog(
+      context: context, 
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Archiwizuj notatkę'),
+          content: const Text('Czy chcesz zarchiwizować tę notatkę?'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Tak', style: TextStyle(color: Colors.grey.shade100)),
+              onPressed: () {
+                Navigator.of(context).pop();
+                _homeBloc.add(ArchiveNote(noteID: noteID));
+                _homeBloc.add(
+                  FetchNotes(
+                    textFilter: _textFilter,
+                    dateFilter: _dateFilter,
+                    stateFilter: _stateFilter,
+                  ),
+                );
+              },
+            ),
+            TextButton(
+              child: Text('Nie', style: TextStyle(color: Colors.grey.shade100)),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -109,7 +138,12 @@ class HomeScreenState extends State<HomeScreen> {
         bloc: _homeBloc,
         listener: (context, state) {
           if (state is HomeError) {
-
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: Colors.red.shade800,
+              ),
+            );
           }
         },
         builder: (context, state) {

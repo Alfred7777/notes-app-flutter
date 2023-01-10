@@ -23,6 +23,8 @@ class NoteInitial extends NoteState {
 
 class NoteSaved extends NoteState {}
 
+class NoteArchived extends NoteState {}
+
 class NoteError extends NoteState {
   final String error;
 

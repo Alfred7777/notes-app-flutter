@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
           onSurface: Colors.grey.shade100,
         ),
         scaffoldBackgroundColor: Colors.blueGrey.shade800,
+        dialogBackgroundColor: Colors.blueGrey.shade800,
         fontFamily: 'Montserrat',
       ),
     );

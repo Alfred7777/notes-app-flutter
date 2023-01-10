@@ -21,3 +21,14 @@ class SaveNote extends NoteEvent {
   @override
   List<Object> get props => [noteID, noteTitle, noteContent];
 }
+
+class ArchiveNote extends NoteEvent {
+  final int noteID;
+
+  const ArchiveNote({
+    required this.noteID,
+  });
+
+  @override
+  List<Object> get props => [noteID];
+}

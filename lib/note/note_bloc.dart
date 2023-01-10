@@ -12,7 +12,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
     required this.note,
   }) : super(NoteInitial(note: note)) {
     on<SaveNote>((event, emit) async {
-      emit(NoteLoading());
       try {
         if (event.noteID > 0) {
           await notesRepository.editNote(
@@ -26,7 +25,6 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
             event.noteContent,
           );
         }
-        
 
         emit(
           NoteSaved(),
@@ -35,6 +33,24 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
         emit(
           const NoteError(
             error: 'Zapisanie notatki nie powiodło się!',
+          ),
+        );
+      }
+    });
+
+    on<ArchiveNote>((event, emit) async {
+      try {
+        await notesRepository.archiveNote(
+          event.noteID,
+        );
+
+        emit(
+          NoteArchived(),
+        );
+      } catch (exception) {
+        emit(
+          const NoteError(
+            error: 'Archiwizacja notatki nie powiodła się!',
           ),
         );
       }
