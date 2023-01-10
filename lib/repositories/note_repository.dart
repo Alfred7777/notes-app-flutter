@@ -24,7 +24,7 @@ class NoteRepository {
     Database database = await _loadDatabase();
     List<Map<String, dynamic>> notes = [];
 
-    if (stateFilter > 0) {
+    if (stateFilter >= 0) {
       notes = await database.rawQuery(
         'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%" AND state = $stateFilter',
       );

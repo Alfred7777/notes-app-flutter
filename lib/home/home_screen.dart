@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'dart:async';
 import 'home_bloc.dart';
 import 'home_event.dart';
 import 'home_state.dart';
@@ -18,9 +20,12 @@ class HomeScreenState extends State<HomeScreen> {
   final NoteRepository noteRepository = NoteRepository();
   late HomeBloc _homeBloc;
 
-  final String _textFilter = '';
-  final String _dateFilter = '';
-  final int _stateFilter = -1;
+  late TextEditingController _textFilterController;
+  late TextEditingController _dateFilterController;
+  int _stateFilter = -1;
+
+  late Timer _debounce;
+  final int _debouncetime = 500;
 
   @override
   void initState() {
@@ -28,10 +33,19 @@ class HomeScreenState extends State<HomeScreen> {
     _homeBloc = HomeBloc(
       notesRepository: noteRepository,
     );
+
+    _textFilterController = TextEditingController();
+    _textFilterController.addListener(_onQueryChanged);
+
+    _dateFilterController = TextEditingController(
+      text: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+    );
   }
 
   @override
   void dispose() {
+    _textFilterController.dispose();
+    _dateFilterController.dispose();
     _homeBloc.close();
     super.dispose();
   }
@@ -55,8 +69,8 @@ class HomeScreenState extends State<HomeScreen> {
     if (result != null) {
       _homeBloc.add(
         FetchNotes(
-          textFilter: _textFilter,
-          dateFilter: _dateFilter,
+          textFilter: _textFilterController.text,
+          dateFilter: _dateFilterController.text,
           stateFilter: _stateFilter,
         ),
       );
@@ -74,8 +88,8 @@ class HomeScreenState extends State<HomeScreen> {
     if (result != null) {
       _homeBloc.add(
         FetchNotes(
-          textFilter: _textFilter,
-          dateFilter: _dateFilter,
+          textFilter: _textFilterController.text,
+          dateFilter: _dateFilterController.text,
           stateFilter: _stateFilter,
         ),
       );
@@ -97,8 +111,8 @@ class HomeScreenState extends State<HomeScreen> {
                 _homeBloc.add(ArchiveNote(noteID: noteID));
                 _homeBloc.add(
                   FetchNotes(
-                    textFilter: _textFilter,
-                    dateFilter: _dateFilter,
+                    textFilter: _textFilterController.text,
+                    dateFilter: _dateFilterController.text,
                     stateFilter: _stateFilter,
                   ),
                 );
@@ -114,6 +128,41 @@ class HomeScreenState extends State<HomeScreen> {
         );
       },
     );
+  }
+
+  void _onFiltersChanged() {
+    _homeBloc.add(
+      FetchNotes(
+        textFilter: _textFilterController.text,
+        dateFilter: _dateFilterController.text,
+        stateFilter: _stateFilter,
+      ),
+    );
+  }
+
+  void _onQueryChanged() {
+    //if (_debounce.isActive) _debounce.cancel();
+    _debounce = Timer(Duration(milliseconds: _debouncetime), () {
+      if (_textFilterController.text.length > 3) {
+        if (_homeBloc.state is HomeReady) {
+          _homeBloc.add(
+            FetchNotes(
+              textFilter: _textFilterController.text,
+              dateFilter: _dateFilterController.text,
+              stateFilter: _stateFilter,
+            ),
+          );
+        }
+      } else {
+        _homeBloc.add(
+          FetchNotes(
+            textFilter: '',
+            dateFilter: _dateFilterController.text,
+            stateFilter: _stateFilter,
+          ),
+        );
+      }
+    });
   }
 
   @override
@@ -150,23 +199,80 @@ class HomeScreenState extends State<HomeScreen> {
           if (state is HomeUninitialized) {
             _homeBloc.add(
               FetchNotes(
-                textFilter: _textFilter,
-                dateFilter: _dateFilter,
+                textFilter: _textFilterController.text,
+                dateFilter: _dateFilterController.text,
                 stateFilter: _stateFilter,
               ),
             );
           }
           if (state is HomeReady) {
-            return ListView.builder(
-              itemCount: state.noteList.length,
-              itemBuilder: (context, index) {
-                return NoteBar(
-                  index: index,
-                  note: state.noteList[index],
-                  onDoubleTap: _onEditNote,
-                  onButtonPressed: _onArchiveNote,
-                );
-              },
+            return Column(
+              children: [
+                TextField(
+                  controller: _textFilterController,
+                  decoration: const InputDecoration(
+                    hintText: 'Wyszukaj',
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Flexible(
+                      child: TextField(
+                        controller: _dateFilterController,
+                        readOnly: true,
+                        textAlign: TextAlign.center,
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context, 
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(1980),
+                            lastDate: DateTime(DateTime.now().year + 1),
+                          );
+                          if (pickedDate != null) {
+                            String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); 
+                            setState(() {
+                              _dateFilterController.text = formattedDate;
+                              _onFiltersChanged();
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    Flexible(
+                      child: DropdownButton<int>(
+                        value: _stateFilter,
+                        onChanged: (value) {
+                          setState(() {
+                            _stateFilter = value!;
+                            _onFiltersChanged();
+                          });
+                        },
+                        items: [-1, 0, 1, 2].map<DropdownMenuItem<int>>((int value) {
+                          List<String> textValues = ['Wszystkie', 'W edycji', 'Zatwierdzona', 'Zarchiwizowana'];
+                          return DropdownMenuItem<int>(
+                            value: value,
+                            child: Text(textValues[value + 1]),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ],
+                ),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: state.noteList.length,
+                    itemBuilder: (context, index) {
+                      return NoteBar(
+                        index: index,
+                        note: state.noteList[index],
+                        onDoubleTap: _onEditNote,
+                        onButtonPressed: _onArchiveNote,
+                      );
+                    },
+                  ),
+                ),
+              ],
             );
           }
           return Center(
