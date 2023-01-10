@@ -4,7 +4,7 @@ import 'package:notes_app/repositories/note_repository.dart';
 class NoteBar extends StatelessWidget {
   final int index;
   final Note note;
-  final Function(int) onDoubleTap;
+  final Function(Note) onDoubleTap;
   final Function(int) onButtonPressed;
   
   const NoteBar({
@@ -18,7 +18,7 @@ class NoteBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onDoubleTap: () => onDoubleTap(note.id),
+      onDoubleTap: () => onDoubleTap(note),
       child: Container(
         color: note.state == 0 ? Colors.blue.shade800 : note.state == 1 ? Colors.green.shade800 : Colors.red.shade800,
         child: Padding(

@@ -14,19 +14,13 @@ class HomeLoading extends HomeState {}
 
 class HomeReady extends HomeState {
   final List<Note> noteList;
-  final String nameFilter;
-  final String dateFilter;
-  final int stateFilter;
 
   const HomeReady({
     required this.noteList,
-    required this.nameFilter,
-    required this.dateFilter,
-    required this.stateFilter,
   });
 
   @override
-  List<Object> get props => [noteList, nameFilter, dateFilter, stateFilter];
+  List<Object> get props => [noteList];
 }
 
 class HomeError extends HomeState {

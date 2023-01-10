@@ -1,16 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:sqflite/sqflite.dart';
 import 'home_bloc.dart';
 import 'home_event.dart';
 import 'home_state.dart';
+import 'package:notes_app/note/note_screen.dart';
 import 'package:notes_app/repositories/note_repository.dart';
 import 'package:notes_app/widgets/note_bar.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
-
-  static const String route = '/';
 
   @override
   State<HomeScreen> createState() => HomeScreenState();
@@ -20,6 +18,10 @@ class HomeScreenState extends State<HomeScreen> {
   final NoteRepository noteRepository = NoteRepository();
   late HomeBloc _homeBloc;
 
+  final String _textFilter = '';
+  final String _dateFilter = '';
+  final int _stateFilter = -1;
+
   @override
   void initState() {
     super.initState();
@@ -28,14 +30,61 @@ class HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  void _onCreateNote() {
-    _homeBloc.add(
-      CreateNote(noteTitle: 'Testowa Notatka', noteContent: 'Fajna treść testowej notatki.'),
+  void _onCreateNote() async {
+    final result = await Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => const NoteScreen(
+          note: Note(
+            id: -1,
+            title: '',
+            content: '',
+            creationDate: '',
+            state: 0,
+          ),
+        ),
+      ),
     );
+
+    if (result != null) {
+      _homeBloc.add(
+        FetchNotes(
+          textFilter: _textFilter,
+          dateFilter: _dateFilter,
+          stateFilter: _stateFilter,
+        ),
+      );
+    }
+  }
+
+  void _onEditNote(Note note) async {
+    final result = await Navigator.push(
+      context, 
+      MaterialPageRoute(
+        builder: (context) => NoteScreen(note: note),
+      ),
+    );
+
+    if (result != null) {
+      _homeBloc.add(
+        FetchNotes(
+          textFilter: _textFilter,
+          dateFilter: _dateFilter,
+          stateFilter: _stateFilter,
+        ),
+      );
+    }
   }
 
   void _onArchiveNote(int noteID) {
-    
+    _homeBloc.add(ArchiveNote(noteID: noteID));
+    _homeBloc.add(
+      FetchNotes(
+        textFilter: _textFilter,
+        dateFilter: _dateFilter,
+        stateFilter: _stateFilter,
+      ),
+    );
   }
 
   @override
@@ -65,7 +114,13 @@ class HomeScreenState extends State<HomeScreen> {
         },
         builder: (context, state) {
           if (state is HomeUninitialized) {
-            _homeBloc.add(FetchNotes());
+            _homeBloc.add(
+              FetchNotes(
+                textFilter: _textFilter,
+                dateFilter: _dateFilter,
+                stateFilter: _stateFilter,
+              ),
+            );
           }
           if (state is HomeReady) {
             return ListView.builder(
@@ -74,7 +129,7 @@ class HomeScreenState extends State<HomeScreen> {
                 return NoteBar(
                   index: index,
                   note: state.noteList[index],
-                  onDoubleTap: _onArchiveNote,
+                  onDoubleTap: _onEditNote,
                   onButtonPressed: _onArchiveNote,
                 );
               },

@@ -7,45 +7,19 @@ class HomeEvent extends Equatable {
   List<Object> get props => [];
 }
 
-class FetchNotes extends HomeEvent {}
+class FetchNotes extends HomeEvent {
+  final String textFilter;
+  final String dateFilter;
+  final int stateFilter;
 
-class FetchNoteDetails extends HomeEvent {
-  final int noteID;
-
-  const FetchNoteDetails({
-    required this.noteID,
+  const FetchNotes({
+    required this.textFilter,
+    required this.dateFilter,
+    required this.stateFilter,
   });
 
   @override
-  List<Object> get props => [noteID];
-}
-
-class CreateNote extends HomeEvent {
-  final String noteTitle;
-  final String noteContent;
-
-  const CreateNote({
-    required this.noteTitle,
-    required this.noteContent,
-  });
-
-  @override
-  List<Object> get props => [noteTitle, noteContent];
-}
-
-class EditNote extends HomeEvent {
-  final int noteID;
-  final String noteTitle;
-  final String noteContent;
-
-  const EditNote({
-    required this.noteID,
-    required this.noteTitle,
-    required this.noteContent,
-  });
-
-  @override
-  List<Object> get props => [noteID, noteTitle, noteContent];
+  List<Object> get props => [textFilter, dateFilter, stateFilter];
 }
 
 class ArchiveNote extends HomeEvent {
@@ -60,16 +34,16 @@ class ArchiveNote extends HomeEvent {
 }
 
 class ChangeFilters extends HomeEvent {
-  final String nameFilter;
+  final String textFilter;
   final String dateFilter;
   final int stateFilter;
 
   const ChangeFilters({
-    required this.nameFilter,
+    required this.textFilter,
     required this.dateFilter,
     required this.stateFilter,
   });
 
   @override
-  List<Object> get props => [nameFilter, dateFilter, stateFilter];
+  List<Object> get props => [textFilter, dateFilter, stateFilter];
 }

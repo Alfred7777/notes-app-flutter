@@ -20,11 +20,19 @@ class NoteRepository {
     return database;
   }
 
-  Future<List<Note>> getNotes(String nameFilter, String dateFilter, int stateFilter) async {
+  Future<List<Note>> getNotes(String textFilter, String dateFilter, int stateFilter) async {
     Database database = await _loadDatabase();
-    List<Map<String, dynamic>> notes = await database.rawQuery(
-      'SELECT * FROM notes WHERE date LIKE "%$dateFilter%"',
-    );
+    List<Map<String, dynamic>> notes = [];
+
+    if (stateFilter > 0) {
+      notes = await database.rawQuery(
+        'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%" AND state = $stateFilter',
+      );
+    } else {
+      notes = await database.rawQuery(
+        'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%"',
+      );
+    }
 
     return List<Note>.from(notes.map((note) => Note.fromJson(note)));
   }
@@ -44,10 +52,18 @@ class NoteRepository {
 
   Future<void> editNote(int noteID, String newTitle, String newContent) async {
     Database database = await _loadDatabase();
+
+    int _ = await database.rawUpdate(
+      'UPDATE notes SET title = "$newTitle", content = "$newContent" WHERE id = $noteID',
+    );
   }
 
   Future<void> archiveNote(int noteID) async {
     Database database = await _loadDatabase();
+
+    int _ = await database.rawUpdate(
+      'UPDATE notes SET state = 2 WHERE id = $noteID',
+    );
   }
 }
 
