@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/models/note.dart';
 
 class HomeState extends Equatable {
   const HomeState();

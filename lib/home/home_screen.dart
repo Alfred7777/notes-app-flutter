@@ -7,6 +7,7 @@ import 'home_event.dart';
 import 'home_state.dart';
 import 'package:notes_app/note/note_screen.dart';
 import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/models/note.dart';
 import 'package:notes_app/widgets/note_bar.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -60,7 +61,7 @@ class HomeScreenState extends State<HomeScreen> {
             title: '',
             content: '',
             creationDate: '',
-            state: 0,
+            isArchived: false,
           ),
         ),
       ),

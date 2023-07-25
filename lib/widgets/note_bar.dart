@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/models/note.dart';
 
 class NoteBar extends StatelessWidget {
   final int index;
@@ -20,7 +20,7 @@ class NoteBar extends StatelessWidget {
     return GestureDetector(
       onDoubleTap: () => onDoubleTap(note),
       child: Container(
-        color: note.state == 0 ? Colors.blue.shade800 : note.state == 1 ? Colors.green.shade800 : Colors.red.shade800,
+        color: note.isArchived ? Colors.red.shade800 : Colors.blue.shade800,
         child: Padding(
           padding: const EdgeInsets.symmetric(
             vertical: 12.0,
@@ -55,7 +55,7 @@ class NoteBar extends StatelessWidget {
                   ],
                 ),
               ),
-              note.state != 2 ? Column(
+              !note.isArchived ? Column(
                 children: [
                   IconButton(
                     icon: const Icon(Icons.delete),

@@ -4,6 +4,7 @@ import 'note_bloc.dart';
 import 'note_event.dart';
 import 'note_state.dart';
 import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/models/note.dart';
 
 class NoteScreen extends StatefulWidget {
   final Note note;
@@ -136,7 +137,7 @@ class NoteScreenState extends State<NoteScreen> {
                       bottom: 16.0,
                     ),
                     child: TextFormField(
-                      readOnly: widget.note.state == 2,
+                      readOnly: widget.note.isArchived,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Nazwa notatki nie może być pusta!';
@@ -162,7 +163,7 @@ class NoteScreenState extends State<NoteScreen> {
                       bottom: 16.0,
                     ),
                     child: TextFormField(
-                      readOnly: widget.note.state == 2,
+                      readOnly: widget.note.isArchived,
                       validator: (value) {
                         if (value!.length > 1000) {
                           return 'Notatka nie może być dłuższa niż 1000 znaków!';
@@ -175,7 +176,7 @@ class NoteScreenState extends State<NoteScreen> {
                       maxLines: null,
                     ),
                   ),
-                  widget.note.state == 1 ? Row(
+                  !widget.note.isArchived ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       ElevatedButton(

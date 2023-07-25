@@ -1,4 +1,3 @@
-import 'package:equatable/equatable.dart';
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -65,33 +64,4 @@ class NoteRepository {
       'UPDATE notes SET state = 2 WHERE id = $noteID',
     );
   }
-}
-
-class Note extends Equatable {
-  final int id;
-  final String title;
-  final String content;
-  final String creationDate;
-  final int state;
-
-  const Note({
-    required this.id,
-    required this.title,
-    required this.content,
-    required this.creationDate,
-    required this.state,
-  });
-
-  factory Note.fromJson(Map<String, dynamic> json) {
-    return Note(
-      id: json['id'],
-      title: json['title'],
-      content: json['content'],
-      creationDate: json['date'],
-      state: json['state'],
-    );
-  }
-
-  @override
-  List<Object> get props => [id, title, content, creationDate, state];
 }
