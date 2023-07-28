@@ -1,14 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:notes_app/resources/app_paddings.dart';
+import 'package:notes_app/resources/app_text_styles.dart';
+import 'package:notes_app/widgets/note_card.dart';
 import 'dart:async';
 import 'home_bloc.dart';
 import 'home_event.dart';
 import 'home_state.dart';
-import 'package:notes_app/note/note_screen.dart';
+import 'package:notes_app/resources/app_colors.dart';
 import 'package:notes_app/repositories/note_repository.dart';
 import 'package:notes_app/models/note.dart';
-import 'package:notes_app/widgets/note_bar.dart';
+import 'package:notes_app/note/note_screen.dart';
+import 'package:notes_app/widgets/note_search_bar.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -17,12 +22,13 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => HomeScreenState();
 }
 
-class HomeScreenState extends State<HomeScreen> {
+class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   final NoteRepository noteRepository = NoteRepository();
   late HomeBloc _homeBloc;
 
   late TextEditingController _textFilterController;
   late TextEditingController _dateFilterController;
+  late TabController _tabController;
   int _stateFilter = -1;
 
   late Timer _debounce;
@@ -35,6 +41,9 @@ class HomeScreenState extends State<HomeScreen> {
       notesRepository: noteRepository,
     );
 
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_onTabChanged);
+
     _textFilterController = TextEditingController();
     _textFilterController.addListener(_onQueryChanged);
 
@@ -45,6 +54,7 @@ class HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _tabController.dispose();
     _textFilterController.dispose();
     _dateFilterController.dispose();
     _homeBloc.close();
@@ -55,14 +65,8 @@ class HomeScreenState extends State<HomeScreen> {
     final result = await Navigator.push(
       context, 
       MaterialPageRoute(
-        builder: (context) => const NoteScreen(
-          note: Note(
-            id: -1,
-            title: '',
-            content: '',
-            creationDate: '',
-            isArchived: false,
-          ),
+        builder: (context) => NoteScreen(
+          note: Note.empty(),
         ),
       ),
     );
@@ -166,123 +170,205 @@ class HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) {
+      switch (_tabController.index) {
+        case 0:
+          //_stateFilter = false;
+          break;
+        case 1:
+          //_stateFilter = true;
+          break;
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notatki'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            iconSize: 32.0,
-            onPressed: () {},
-          ),
-        ],
-        centerTitle: true,
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: const Icon(Icons.add),
-        onPressed: () => _onCreateNote(),
-      ),
-      body: BlocConsumer(
-        bloc: _homeBloc,
-        listener: (context, state) {
-          if (state is HomeError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red.shade800,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is HomeUninitialized) {
-            _homeBloc.add(
-              FetchNotes(
-                textFilter: _textFilterController.text,
-                dateFilter: _dateFilterController.text,
-                stateFilter: _stateFilter,
-              ),
-            );
-          }
-          if (state is HomeReady) {
-            return Column(
-              children: [
-                TextField(
-                  controller: _textFilterController,
-                  decoration: const InputDecoration(
-                    hintText: 'Wyszukaj',
-                  ),
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Flexible(
-                      child: TextField(
-                        controller: _dateFilterController,
-                        readOnly: true,
-                        textAlign: TextAlign.center,
-                        onTap: () async {
-                          DateTime? pickedDate = await showDatePicker(
-                            context: context, 
-                            initialDate: DateTime.now(),
-                            firstDate: DateTime(1980),
-                            lastDate: DateTime(DateTime.now().year + 1),
-                          );
-                          if (pickedDate != null) {
-                            String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); 
-                            setState(() {
-                              _dateFilterController.text = formattedDate;
-                              _onFiltersChanged();
-                            });
-                          }
-                        },
-                      ),
-                    ),
-                    Flexible(
-                      child: DropdownButton<int>(
-                        value: _stateFilter,
-                        onChanged: (value) {
-                          setState(() {
-                            _stateFilter = value!;
-                            _onFiltersChanged();
-                          });
-                        },
-                        items: [-1, 0, 1, 2].map<DropdownMenuItem<int>>((int value) {
-                          List<String> textValues = ['Wszystkie', 'W edycji', 'Zatwierdzona', 'Zarchiwizowana'];
-                          return DropdownMenuItem<int>(
-                            value: value,
-                            child: Text(textValues[value + 1]),
-                          );
-                        }).toList(),
-                      ),
-                    ),
-                  ],
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: state.noteList.length,
-                    itemBuilder: (context, index) {
-                      return NoteBar(
-                        index: index,
-                        note: state.noteList[index],
-                        onDoubleTap: _onEditNote,
-                        onButtonPressed: _onArchiveNote,
-                      );
-                    },
-                  ),
-                ),
-              ],
-            );
-          }
-          return Center(
-            child: CircularProgressIndicator(
-              color: Colors.grey.shade100,
+    return DefaultTabController(
+      length: 2, 
+      child: Scaffold(
+        appBar: TabBar(
+          controller: _tabController,
+          indicatorSize: TabBarIndicatorSize.label,
+          indicatorColor: AppColors.kMainAccentColor,
+          labelStyle: AppTextStyles.kTabBarLabelStyle,
+          labelColor: AppColors.kMainAccentColor,
+          unselectedLabelColor: AppColors.kPrimaryColor,
+          tabs: const [
+            Tab(
+              text: 'Notes',
             ),
-          );
-        },
+            Tab(
+              text: 'Archive',
+            ),
+          ],
+        ),
+        backgroundColor: AppColors.kMainBackgroundColor,
+        body: Column(
+          children: [
+            NoteSearchBar(
+              queryTextController: _textFilterController,
+            ),
+            Flexible(
+              child: MasonryGridView.count(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppPaddings.kNoteCardPadding,
+                  horizontal: AppPaddings.kNoteCardPadding * 2,
+                ),
+                mainAxisSpacing: AppPaddings.kNoteCardPadding,
+                crossAxisSpacing: AppPaddings.kNoteCardPadding,
+                crossAxisCount: 2,
+                itemCount: 9,
+                itemBuilder: (context, index) {
+                  return NoteCard(
+                    index: 0, 
+                    isSelected: true, 
+                    note: Note(
+                      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation." * (index % 3 + 1),
+                      id: 0,
+                      title: "Very important note.",
+                      isArchived: false,
+                      creationDate: '2023-11-21',
+                    ), 
+                    onTap: _onEditNote, 
+                    onLongPress: (int id) {},
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: AppColors.kMainAccentColor,
+          onPressed: () => _onCreateNote(),
+          child: const Icon(
+            Icons.add,
+            color: AppColors.kMainBackgroundColor,
+            size: 32,
+          ),
+        ),
       ),
     );
   }
+  // @override
+  // Widget build(BuildContext context) {
+  //   return Scaffold(
+  //     appBar: AppBar(
+  //       title: const Text('Notatki'),
+  //       actions: [
+  //         IconButton(
+  //           icon: const Icon(Icons.filter_list),
+  //           iconSize: 32.0,
+  //           onPressed: () {},
+  //         ),
+  //       ],
+  //       centerTitle: true,
+  //     ),
+  //     floatingActionButton: FloatingActionButton(
+  //       child: const Icon(Icons.add),
+  //       onPressed: () => _onCreateNote(),
+  //     ),
+  //     body: BlocConsumer(
+  //       bloc: _homeBloc,
+  //       listener: (context, state) {
+  //         if (state is HomeError) {
+  //           ScaffoldMessenger.of(context).showSnackBar(
+  //             SnackBar(
+  //               content: Text(state.error),
+  //               backgroundColor: Colors.red.shade800,
+  //             ),
+  //           );
+  //         }
+  //       },
+  //       builder: (context, state) {
+  //         if (state is HomeUninitialized) {
+  //           _homeBloc.add(
+  //             FetchNotes(
+  //               textFilter: _textFilterController.text,
+  //               dateFilter: _dateFilterController.text,
+  //               stateFilter: _stateFilter,
+  //             ),
+  //           );
+  //         }
+  //         if (state is HomeReady) {
+  //           return Column(
+  //             children: [
+  //               TextField(
+  //                 controller: _textFilterController,
+  //                 decoration: const InputDecoration(
+  //                   hintText: 'Wyszukaj',
+  //                 ),
+  //               ),
+  //               Row(
+  //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  //                 children: [
+  //                   Flexible(
+  //                     child: TextField(
+  //                       controller: _dateFilterController,
+  //                       readOnly: true,
+  //                       textAlign: TextAlign.center,
+  //                       onTap: () async {
+  //                         DateTime? pickedDate = await showDatePicker(
+  //                           context: context, 
+  //                           initialDate: DateTime.now(),
+  //                           firstDate: DateTime(1980),
+  //                           lastDate: DateTime(DateTime.now().year + 1),
+  //                         );
+  //                         if (pickedDate != null) {
+  //                           String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); 
+  //                           setState(() {
+  //                             _dateFilterController.text = formattedDate;
+  //                             _onFiltersChanged();
+  //                           });
+  //                         }
+  //                       },
+  //                     ),
+  //                   ),
+  //                   Flexible(
+  //                     child: DropdownButton<int>(
+  //                       value: _stateFilter,
+  //                       onChanged: (value) {
+  //                         setState(() {
+  //                           _stateFilter = value!;
+  //                           _onFiltersChanged();
+  //                         });
+  //                       },
+  //                       items: [-1, 0, 1, 2].map<DropdownMenuItem<int>>((int value) {
+  //                         List<String> textValues = ['Wszystkie', 'W edycji', 'Zatwierdzona', 'Zarchiwizowana'];
+  //                         return DropdownMenuItem<int>(
+  //                           value: value,
+  //                           child: Text(textValues[value + 1]),
+  //                         );
+  //                       }).toList(),
+  //                     ),
+  //                   ),
+  //                 ],
+  //               ),
+  //               Expanded(
+  //                 child: ListView.builder(
+  //                   itemCount: state.noteList.length,
+  //                   itemBuilder: (context, index) {
+  //                     return NoteBar(
+  //                       index: index,
+  //                       note: state.noteList[index],
+  //                       onDoubleTap: _onEditNote,
+  //                       onButtonPressed: _onArchiveNote,
+  //                     );
+  //                   },
+  //                 ),
+  //               ),
+  //             ],
+  //           );
+  //         }
+  //         return Center(
+  //           child: CircularProgressIndicator(
+  //             color: Colors.grey.shade100,
+  //           ),
+  //         );
+  //       },
+  //     ),
+  //   );
+  // }
 }

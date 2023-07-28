@@ -1,5 +1,6 @@
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:notes_app/models/note.dart';
 
 class NoteRepository {
   final _dateFormatter = DateFormat("yyyy-MM-dd").add_Hm();

@@ -25,6 +25,16 @@ class Note extends Equatable {
     );
   }
 
+  factory Note.empty() {
+    return const Note(
+      id: -1,
+      title: '',
+      content: '',
+      creationDate: '',
+      isArchived: false,
+    );
+  }
+
   @override
   List<Object> get props => [id, title, content, creationDate, isArchived];
 }
