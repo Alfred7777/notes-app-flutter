@@ -21,7 +21,7 @@ class Note extends Equatable {
       title: json['title'],
       content: json['content'],
       creationDate: json['date'],
-      isArchived: json['is_archived'],
+      isArchived: json['state'] == 0 ? false : true,
     );
   }
 

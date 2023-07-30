@@ -12,7 +12,7 @@ class NoteRepository {
       version: 1,
       onCreate: (db, version) async {
         await db.execute(
-          'CREATE TABLE notes (id INTEGER PRIMARY KEY, title TEXT, content TEXT, date TEXT, state INTEGER)',
+          'CREATE TABLE notes (id INTEGER PRIMARY KEY, title TEXT, content TEXT, date TEXT, state INT(1))',
         );
       },
     );
@@ -20,19 +20,14 @@ class NoteRepository {
     return database;
   }
 
-  Future<List<Note>> getNotes(String textFilter, String dateFilter, int stateFilter) async {
+  Future<List<Note>> getNotes(String textFilter, String dateFilter, bool stateFilter) async {
     Database database = await _loadDatabase();
     List<Map<String, dynamic>> notes = [];
+    int state = stateFilter ? 1 : 0;
 
-    if (stateFilter >= 0) {
-      notes = await database.rawQuery(
-        'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%" AND state = $stateFilter',
-      );
-    } else {
-      notes = await database.rawQuery(
-        'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%"',
-      );
-    }
+    notes = await database.rawQuery(
+      'SELECT * FROM notes WHERE (title LIKE "%$textFilter%" OR content LIKE "%$textFilter%") AND date LIKE "%$dateFilter%" AND state = $state',
+    );
 
     return List<Note>.from(notes.map((note) => Note.fromJson(note)));
   }
@@ -41,7 +36,7 @@ class NoteRepository {
     Database database = await _loadDatabase();
 
     String date = _dateFormatter.format(DateTime.now());
-    int state = 1;
+    int state = 0;
 
     await database.transaction((transaction) async {
       int _ = await transaction.rawInsert(
@@ -62,7 +57,7 @@ class NoteRepository {
     Database database = await _loadDatabase();
 
     int _ = await database.rawUpdate(
-      'UPDATE notes SET state = 2 WHERE id = $noteID',
+      'UPDATE notes SET state = 1 WHERE id = $noteID',
     );
   }
 }

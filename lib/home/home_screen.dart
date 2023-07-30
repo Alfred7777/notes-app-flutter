@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:notes_app/resources/app_paddings.dart';
 import 'package:notes_app/resources/app_text_styles.dart';
+import 'package:notes_app/widgets/note_archive_dialog.dart';
 import 'package:notes_app/widgets/note_card.dart';
 import 'dart:async';
 import 'home_bloc.dart';
@@ -29,8 +30,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   late TextEditingController _textFilterController;
   late TextEditingController _dateFilterController;
   late TabController _tabController;
-  int _stateFilter = -1;
+  bool _stateFilter = false;
 
+  // ignore: unused_field
   late Timer _debounce;
   final int _debouncetime = 500;
 
@@ -61,6 +63,16 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     super.dispose();
   }
 
+  void _refreshNotes() {
+    _homeBloc.add(
+      FetchNotes(
+        textFilter: _textFilterController.text.length > 3 ? _textFilterController.text : '',
+        dateFilter: _dateFilterController.text,
+        stateFilter: _stateFilter,
+      ),
+    );
+  }
+
   void _onCreateNote() async {
     final result = await Navigator.push(
       context, 
@@ -72,13 +84,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     );
 
     if (result != null) {
-      _homeBloc.add(
-        FetchNotes(
-          textFilter: _textFilterController.text,
-          dateFilter: _dateFilterController.text,
-          stateFilter: _stateFilter,
-        ),
-      );
+      _refreshNotes();
     }
   }
 
@@ -91,13 +97,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     );
 
     if (result != null) {
-      _homeBloc.add(
-        FetchNotes(
-          textFilter: _textFilterController.text,
-          dateFilter: _dateFilterController.text,
-          stateFilter: _stateFilter,
-        ),
-      );
+      _refreshNotes();
     }
   }
 
@@ -105,67 +105,22 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     showDialog(
       context: context, 
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Archiwizuj notatkę'),
-          content: const Text('Czy chcesz zarchiwizować tę notatkę?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Tak', style: TextStyle(color: Colors.grey.shade100)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _homeBloc.add(ArchiveNote(noteID: noteID));
-                _homeBloc.add(
-                  FetchNotes(
-                    textFilter: _textFilterController.text,
-                    dateFilter: _dateFilterController.text,
-                    stateFilter: _stateFilter,
-                  ),
-                );
-              },
-            ),
-            TextButton(
-              child: Text('Nie', style: TextStyle(color: Colors.grey.shade100)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
+        return NoteArchiveDialog(
+          noteID: noteID, 
+          archiveNote: (int noteID) {
+            _homeBloc.add(ArchiveNote(noteID: noteID));
+            _refreshNotes();
+          },
         );
       },
-    );
-  }
-
-  void _onFiltersChanged() {
-    _homeBloc.add(
-      FetchNotes(
-        textFilter: _textFilterController.text,
-        dateFilter: _dateFilterController.text,
-        stateFilter: _stateFilter,
-      ),
     );
   }
 
   void _onQueryChanged() {
     //if (_debounce.isActive) _debounce.cancel();
     _debounce = Timer(Duration(milliseconds: _debouncetime), () {
-      if (_textFilterController.text.length > 3) {
-        if (_homeBloc.state is HomeReady) {
-          _homeBloc.add(
-            FetchNotes(
-              textFilter: _textFilterController.text,
-              dateFilter: _dateFilterController.text,
-              stateFilter: _stateFilter,
-            ),
-          );
-        }
-      } else {
-        _homeBloc.add(
-          FetchNotes(
-            textFilter: '',
-            dateFilter: _dateFilterController.text,
-            stateFilter: _stateFilter,
-          ),
-        );
+      if (_homeBloc.state is HomeReady) {
+        _refreshNotes();
       }
     });
   }
@@ -174,79 +129,105 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     if (_tabController.indexIsChanging) {
       switch (_tabController.index) {
         case 0:
-          //_stateFilter = false;
+          _stateFilter = false;
           break;
         case 1:
-          //_stateFilter = true;
+          _stateFilter = true;
           break;
       }
+      _refreshNotes();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 2, 
-      child: Scaffold(
-        appBar: TabBar(
-          controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.label,
-          indicatorColor: AppColors.kMainAccentColor,
-          labelStyle: AppTextStyles.kTabBarLabelStyle,
-          labelColor: AppColors.kMainAccentColor,
-          unselectedLabelColor: AppColors.kPrimaryColor,
-          tabs: const [
-            Tab(
-              text: 'Notes',
-            ),
-            Tab(
-              text: 'Archive',
-            ),
-          ],
-        ),
-        backgroundColor: AppColors.kMainBackgroundColor,
-        body: Column(
-          children: [
-            NoteSearchBar(
-              queryTextController: _textFilterController,
-            ),
-            Flexible(
-              child: MasonryGridView.count(
-                padding: const EdgeInsets.symmetric(
-                  vertical: AppPaddings.kNoteCardPadding,
-                  horizontal: AppPaddings.kNoteCardPadding * 2,
-                ),
-                mainAxisSpacing: AppPaddings.kNoteCardPadding,
-                crossAxisSpacing: AppPaddings.kNoteCardPadding,
-                crossAxisCount: 2,
-                itemCount: 9,
-                itemBuilder: (context, index) {
-                  return NoteCard(
-                    index: 0, 
-                    isSelected: true, 
-                    note: Note(
-                      content: "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Ut enim ad minim veniam, quis nostrud exercitation." * (index % 3 + 1),
-                      id: 0,
-                      title: "Very important note.",
-                      isArchived: false,
-                      creationDate: '2023-11-21',
-                    ), 
-                    onTap: _onEditNote, 
-                    onLongPress: (int id) {},
-                  );
-                },
+    return SafeArea(
+      child: DefaultTabController(
+        length: 2, 
+        child: Scaffold(
+          appBar: TabBar(
+            controller: _tabController,
+            indicatorSize: TabBarIndicatorSize.label,
+            indicatorColor: AppColors.kMainAccentColor,
+            labelStyle: AppTextStyles.kTabBarLabelStyle,
+            labelColor: AppColors.kMainAccentColor,
+            unselectedLabelColor: AppColors.kPrimaryColor,
+            tabs: const [
+              Tab(
+                text: 'Notes',
               ),
+              Tab(
+                text: 'Archive',
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.kMainBackgroundColor,
+          body: BlocConsumer(
+            bloc: _homeBloc,
+            listener: (context, state) {
+              if (state is HomeError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.error),
+                    backgroundColor: AppColors.kSecondAccentColor,
+                  ),
+                );
+              }
+            },
+            builder: (context, state) {
+              if (state is HomeUninitialized) {
+                _homeBloc.add(
+                  FetchNotes(
+                    textFilter: _textFilterController.text,
+                    dateFilter: _dateFilterController.text,
+                    stateFilter: _stateFilter,
+                  ),
+                );
+              }
+              if (state is HomeReady) {
+                return Column(
+                  children: [
+                    NoteSearchBar(
+                      queryTextController: _textFilterController,
+                    ),
+                    Flexible(
+                      child: MasonryGridView.count(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppPaddings.kNoteCardPadding,
+                          horizontal: AppPaddings.kNoteCardPadding * 2,
+                        ),
+                        mainAxisSpacing: AppPaddings.kNoteCardPadding,
+                        crossAxisSpacing: AppPaddings.kNoteCardPadding,
+                        crossAxisCount: 2,
+                        itemCount: state.noteList.length,
+                        itemBuilder: (context, index) {
+                          return NoteCard(
+                            note: state.noteList[index], 
+                            editNote: _onEditNote, 
+                            archiveNote: _onArchiveNote,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              }
+              return Center(
+                child: CircularProgressIndicator(
+                  color: Colors.grey.shade100,
+                ),
+              );
+            }
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+          floatingActionButton: FloatingActionButton(
+            backgroundColor: AppColors.kMainAccentColor,
+            onPressed: () => _onCreateNote(),
+            child: const Icon(
+              Icons.add,
+              color: AppColors.kMainBackgroundColor,
+              size: 32,
             ),
-          ],
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: AppColors.kMainAccentColor,
-          onPressed: () => _onCreateNote(),
-          child: const Icon(
-            Icons.add,
-            color: AppColors.kMainBackgroundColor,
-            size: 32,
           ),
         ),
       ),

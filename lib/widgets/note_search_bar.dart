@@ -19,7 +19,7 @@ class NoteSearchBar extends StatelessWidget {
         horizontal: AppPaddings.kNoteCardPadding * 2,
       ),
       child: Container(
-        height: 36,
+        height: 42,
         decoration: BoxDecoration(
           color: AppColors.kLightPrimaryColor.withAlpha(40),
           borderRadius: BorderRadius.circular(

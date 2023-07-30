@@ -10,7 +10,7 @@ class HomeEvent extends Equatable {
 class FetchNotes extends HomeEvent {
   final String textFilter;
   final String dateFilter;
-  final int stateFilter;
+  final bool stateFilter;
 
   const FetchNotes({
     required this.textFilter,
@@ -36,7 +36,7 @@ class ArchiveNote extends HomeEvent {
 class ChangeFilters extends HomeEvent {
   final String textFilter;
   final String dateFilter;
-  final int stateFilter;
+  final bool stateFilter;
 
   const ChangeFilters({
     required this.textFilter,

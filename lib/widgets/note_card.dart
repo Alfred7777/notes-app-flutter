@@ -4,22 +4,23 @@ import 'package:notes_app/resources/app_colors.dart';
 import 'package:notes_app/resources/app_paddings.dart';
 import 'package:notes_app/resources/app_text_styles.dart';
 
-class NoteCard extends StatelessWidget {
-  final int index;
-  final bool isSelected;
+class NoteCard extends StatefulWidget {
   final Note note;
-  final Function(Note) onTap;
-  final Function(int) onLongPress;
-  
+  final Function(Note) editNote;
+  final Function(int) archiveNote;
+
   const NoteCard({
     Key? key,
-    required this.index,
-    required this.isSelected,
     required this.note,
-    required this.onTap,
-    required this.onLongPress,
+    required this.editNote,
+    required this.archiveNote,
   }) : super(key: key);
 
+  @override
+  NoteCardState createState() => NoteCardState();
+}
+
+class NoteCardState extends State<NoteCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -30,39 +31,46 @@ class NoteCard extends StatelessWidget {
       ),
       margin: EdgeInsets.zero,
       color: AppColors.kWidgetBackgroundColor,
-      child: Padding(
-        padding: const EdgeInsets.all(
-          AppPaddings.kNoteCardContentPadding,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(
+          AppPaddings.kNoteCardPadding,
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppPaddings.kNoteCardTitlePadding,
+        onTap: () => widget.editNote(widget.note),
+        onLongPress: () => widget.archiveNote(widget.note.id),
+        child: Padding(
+          padding: const EdgeInsets.all(
+            AppPaddings.kNoteCardContentPadding,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  bottom: AppPaddings.kNoteCardTitlePadding,
+                ),
+                child: Text(
+                  widget.note.title, 
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.kNoteTitleStyle,
+                ),
               ),
-              child: Text(
-                note.title, 
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.kNoteTitleStyle,
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppPaddings.kNoteCardTitlePadding,
+                ),
+                child: Text(
+                  widget.note.content, 
+                  maxLines: 12,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.kNoteContentStyle,
+                ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                vertical: AppPaddings.kNoteCardTitlePadding,
-              ),
-              child: Text(
-                note.content, 
-                maxLines: 12,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.kNoteContentStyle,
-              ),
-            ),
-          ],
-        ),
-      )
+            ],
+          ),
+        )
+      ),
     );
   }
 }
