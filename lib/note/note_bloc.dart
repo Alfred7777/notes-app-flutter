@@ -1,8 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'note_event.dart';
-import 'note_state.dart';
 import 'package:notes_app/repositories/note_repository.dart';
 import 'package:notes_app/models/note.dart';
+import 'package:notes_app/resources/app_strings.dart';
+import 'note_event.dart';
+import 'note_state.dart';
 
 class NoteBloc extends Bloc<NoteEvent, NoteState> {
   final NoteRepository notesRepository;
@@ -33,7 +34,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       } catch (exception) {
         emit(
           const NoteError(
-            error: 'Zapisanie notatki nie powiodło się!',
+            error: AppStrings.kCreateNoteError,
           ),
         );
       }
@@ -51,7 +52,7 @@ class NoteBloc extends Bloc<NoteEvent, NoteState> {
       } catch (exception) {
         emit(
           const NoteError(
-            error: 'Archiwizacja notatki nie powiodła się!',
+            error: AppStrings.kArchiveNoteError,
           ),
         );
       }

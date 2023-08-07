@@ -18,14 +18,14 @@ class NoteArchiveDialog extends StatelessWidget {
       content: const Text(AppStrings.kArchiveNoteQuestion),
       actions: <Widget>[
         TextButton(
-          child: Text('Tak', style: TextStyle(color: Colors.grey.shade100)),
+          child: Text('Yes', style: TextStyle(color: Colors.grey.shade100)),
           onPressed: () {
             Navigator.of(context).pop();
             archiveNote(noteID);
           },
         ),
         TextButton(
-          child: Text('Nie', style: TextStyle(color: Colors.grey.shade100)),
+          child: Text('No', style: TextStyle(color: Colors.grey.shade100)),
           onPressed: () {
             Navigator.of(context).pop();
           },

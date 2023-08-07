@@ -1,20 +1,21 @@
+import 'dart:async';
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:notes_app/models/note.dart';
+import 'package:notes_app/repositories/note_repository.dart';
 import 'package:notes_app/resources/app_paddings.dart';
+import 'package:notes_app/resources/app_colors.dart';
+import 'package:notes_app/resources/app_strings.dart';
 import 'package:notes_app/resources/app_text_styles.dart';
 import 'package:notes_app/widgets/note_archive_dialog.dart';
+import 'package:notes_app/widgets/note_search_bar.dart';
 import 'package:notes_app/widgets/note_card.dart';
-import 'dart:async';
+import 'package:notes_app/note/note_screen.dart';
 import 'home_bloc.dart';
 import 'home_event.dart';
 import 'home_state.dart';
-import 'package:notes_app/resources/app_colors.dart';
-import 'package:notes_app/repositories/note_repository.dart';
-import 'package:notes_app/models/note.dart';
-import 'package:notes_app/note/note_screen.dart';
-import 'package:notes_app/widgets/note_search_bar.dart';
-import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -50,7 +51,7 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
     _textFilterController.addListener(_onQueryChanged);
 
     _dateFilterController = TextEditingController(
-      text: DateFormat('yyyy-MM-dd').format(DateTime.now()),
+      text: DateFormat(AppStrings.kDefaultDateFormat).format(DateTime.now()),
     );
   }
 
@@ -117,7 +118,6 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
   }
 
   void _onQueryChanged() {
-    //if (_debounce.isActive) _debounce.cancel();
     _debounce = Timer(Duration(milliseconds: _debouncetime), () {
       if (_homeBloc.state is HomeReady) {
         _refreshNotes();
@@ -154,10 +154,10 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
             unselectedLabelColor: AppColors.kPrimaryColor,
             tabs: const [
               Tab(
-                text: 'Notes',
+                text: AppStrings.kNotesTabName,
               ),
               Tab(
-                text: 'Archive',
+                text: AppStrings.kArchiveTabName,
               ),
             ],
           ),
@@ -212,9 +212,9 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
                   ],
                 );
               }
-              return Center(
+              return const Center(
                 child: CircularProgressIndicator(
-                  color: Colors.grey.shade100,
+                  color: AppColors.kMainAccentColor,
                 ),
               );
             }
@@ -233,123 +233,4 @@ class HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMi
       ),
     );
   }
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       title: const Text('Notatki'),
-  //       actions: [
-  //         IconButton(
-  //           icon: const Icon(Icons.filter_list),
-  //           iconSize: 32.0,
-  //           onPressed: () {},
-  //         ),
-  //       ],
-  //       centerTitle: true,
-  //     ),
-  //     floatingActionButton: FloatingActionButton(
-  //       child: const Icon(Icons.add),
-  //       onPressed: () => _onCreateNote(),
-  //     ),
-  //     body: BlocConsumer(
-  //       bloc: _homeBloc,
-  //       listener: (context, state) {
-  //         if (state is HomeError) {
-  //           ScaffoldMessenger.of(context).showSnackBar(
-  //             SnackBar(
-  //               content: Text(state.error),
-  //               backgroundColor: Colors.red.shade800,
-  //             ),
-  //           );
-  //         }
-  //       },
-  //       builder: (context, state) {
-  //         if (state is HomeUninitialized) {
-  //           _homeBloc.add(
-  //             FetchNotes(
-  //               textFilter: _textFilterController.text,
-  //               dateFilter: _dateFilterController.text,
-  //               stateFilter: _stateFilter,
-  //             ),
-  //           );
-  //         }
-  //         if (state is HomeReady) {
-  //           return Column(
-  //             children: [
-  //               TextField(
-  //                 controller: _textFilterController,
-  //                 decoration: const InputDecoration(
-  //                   hintText: 'Wyszukaj',
-  //                 ),
-  //               ),
-  //               Row(
-  //                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //                 children: [
-  //                   Flexible(
-  //                     child: TextField(
-  //                       controller: _dateFilterController,
-  //                       readOnly: true,
-  //                       textAlign: TextAlign.center,
-  //                       onTap: () async {
-  //                         DateTime? pickedDate = await showDatePicker(
-  //                           context: context, 
-  //                           initialDate: DateTime.now(),
-  //                           firstDate: DateTime(1980),
-  //                           lastDate: DateTime(DateTime.now().year + 1),
-  //                         );
-  //                         if (pickedDate != null) {
-  //                           String formattedDate = DateFormat('yyyy-MM-dd').format(pickedDate); 
-  //                           setState(() {
-  //                             _dateFilterController.text = formattedDate;
-  //                             _onFiltersChanged();
-  //                           });
-  //                         }
-  //                       },
-  //                     ),
-  //                   ),
-  //                   Flexible(
-  //                     child: DropdownButton<int>(
-  //                       value: _stateFilter,
-  //                       onChanged: (value) {
-  //                         setState(() {
-  //                           _stateFilter = value!;
-  //                           _onFiltersChanged();
-  //                         });
-  //                       },
-  //                       items: [-1, 0, 1, 2].map<DropdownMenuItem<int>>((int value) {
-  //                         List<String> textValues = ['Wszystkie', 'W edycji', 'Zatwierdzona', 'Zarchiwizowana'];
-  //                         return DropdownMenuItem<int>(
-  //                           value: value,
-  //                           child: Text(textValues[value + 1]),
-  //                         );
-  //                       }).toList(),
-  //                     ),
-  //                   ),
-  //                 ],
-  //               ),
-  //               Expanded(
-  //                 child: ListView.builder(
-  //                   itemCount: state.noteList.length,
-  //                   itemBuilder: (context, index) {
-  //                     return NoteBar(
-  //                       index: index,
-  //                       note: state.noteList[index],
-  //                       onDoubleTap: _onEditNote,
-  //                       onButtonPressed: _onArchiveNote,
-  //                     );
-  //                   },
-  //                 ),
-  //               ),
-  //             ],
-  //           );
-  //         }
-  //         return Center(
-  //           child: CircularProgressIndicator(
-  //             color: Colors.grey.shade100,
-  //           ),
-  //         );
-  //       },
-  //     ),
-  //   );
-  // }
 }

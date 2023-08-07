@@ -53,7 +53,7 @@ class NoteCardState extends State<NoteCard> {
                   widget.note.title, 
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.kNoteTitleStyle,
+                  style: AppTextStyles.kNoteCardTitleStyle,
                 ),
               ),
               Padding(
@@ -64,7 +64,7 @@ class NoteCardState extends State<NoteCard> {
                   widget.note.content, 
                   maxLines: 12,
                   overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.kNoteContentStyle,
+                  style: AppTextStyles.kNoteCardContentStyle,
                 ),
               ),
             ],

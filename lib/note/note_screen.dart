@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/models/note.dart';
+import 'package:notes_app/resources/app_paddings.dart';
+import 'package:notes_app/resources/app_text_styles.dart';
+import 'package:notes_app/resources/app_strings.dart';
+import 'package:notes_app/resources/app_colors.dart';
 import 'note_bloc.dart';
 import 'note_event.dart';
 import 'note_state.dart';
-import 'package:notes_app/repositories/note_repository.dart';
-import 'package:notes_app/models/note.dart';
 
 class NoteScreen extends StatefulWidget {
   final Note note;
@@ -59,149 +63,120 @@ class NoteScreenState extends State<NoteScreen> {
       );
     }
   }
-
-  void _archiveNote() async {
-    showDialog(
-      context: context, 
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Archiwizuj notatkę'),
-          content: const Text('Czy chcesz zarchiwizować tę notatkę?'),
-          actions: <Widget>[
-            TextButton(
-              child: Text('Tak', style: TextStyle(color: Colors.grey.shade100)),
-              onPressed: () {
-                Navigator.of(context).pop();
-                _noteBloc.add(
-                  ArchiveNote(noteID: widget.note.id),
-                );
-              },
-            ),
-            TextButton(
-              child: Text('Nie', style: TextStyle(color: Colors.grey.shade100)),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: widget.note.creationDate.isNotEmpty ? Text('Notatka z ${widget.note.creationDate}') : const Text('Nowa Notatka'),
-        centerTitle: true,
-      ),
-      body: BlocConsumer(
-        bloc: _noteBloc,
-        listener: (context, state) {
-          if (state is NoteError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error),
-                backgroundColor: Colors.red.shade800,
-              ),
-            );
-          }
-          if (state is NoteSaved) {
-            Navigator.pop(context, 'Notatka zapisana!');
-          }
-          if (state is NoteArchived) {
-            Navigator.pop(context, 'Notatka zarchiwizowana!');
-          }
-        },
-        builder: (context, state) {
-          if (state is NoteInitial) {
-            return Form(
-              key: _noteFormKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Center(
-                    child: Text(
-                      'Tytuł Notatki', 
-                      style: TextStyle(
-                        fontSize: 18.0, 
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 48.0,
-                      right: 48.0,
-                      bottom: 16.0,
-                    ),
-                    child: TextFormField(
-                      readOnly: widget.note.isArchived,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Nazwa notatki nie może być pusta!';
-                        }
-                        return null;
-                      },
-                      controller: _titleController,
-                    ),
-                  ),
-                  const Center(
-                    child: Text(
-                      'Treść Notatki', 
-                      style: TextStyle(
-                        fontSize: 18.0, 
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      left: 48.0,
-                      right: 48.0,
-                      bottom: 16.0,
-                    ),
-                    child: TextFormField(
-                      readOnly: widget.note.isArchived,
-                      validator: (value) {
-                        if (value!.length > 1000) {
-                          return 'Notatka nie może być dłuższa niż 1000 znaków!';
-                        }
-                        return null;
-                      },
-                      controller: _contentController,
-                      keyboardType: TextInputType.multiline,
-                      minLines: 5,
-                      maxLines: null,
-                    ),
-                  ),
-                  !widget.note.isArchived ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      ElevatedButton(
-                        onPressed: _saveNote, 
-                        child: const Text('Zapisz'),
-                      ),
-                      ElevatedButton(
-                        onPressed: _archiveNote, 
-                        child: const Text('Zarchiwizuj'),
-                      ),
-                    ],
-                  ) : ElevatedButton(
-                    onPressed: _saveNote, 
-                    child: const Text('Zapisz'),
-                  ),
-                ],
-              ),
-            );
-          }
-          return Center(
-            child: CircularProgressIndicator(
-              color: Colors.grey.shade100,
+    return SafeArea(
+      child: Scaffold(
+        appBar: AppBar(
+          foregroundColor: AppColors.kPrimaryColor,
+          backgroundColor: AppColors.kMainBackgroundColor,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            '${widget.note.creationDate.isEmpty ? '' : '${widget.note.creationDate} |'} ${_contentController.text.length} characters',
+            style: AppTextStyles.kNoteViewDateStyle,
+          ),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.check),
+              onPressed: _saveNote,
             ),
-          );
-        },
+          ],
+        ),
+        backgroundColor: AppColors.kMainBackgroundColor,
+        body: BlocConsumer(
+          bloc: _noteBloc,
+          listener: (context, state) {
+            if (state is NoteError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.error),
+                  backgroundColor: AppColors.kSecondAccentColor,
+                ),
+              );
+            }
+            if (state is NoteSaved) {
+              Navigator.pop(context, AppStrings.kCreateNoteConfirmation);
+            }
+            if (state is NoteArchived) {
+              Navigator.pop(context, AppStrings.kArchiveNoteConfirmation);
+            }
+          },
+          builder: (context, state) {
+            if (state is NoteInitial) {
+              return Form(
+                key: _noteFormKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.max,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: AppPaddings.kNoteViewVerticalPadding,
+                        left: AppPaddings.kNoteViewHorizontalPadding,
+                        right: AppPaddings.kNoteViewHorizontalPadding,
+                      ),
+                      child: TextFormField(
+                        readOnly: widget.note.isArchived,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return AppStrings.kNoteEmptyTitleError;
+                          }
+                          return null;
+                        },
+                        controller: _titleController,
+                        style: AppTextStyles.kNoteViewTitleStyle,
+                        decoration: const InputDecoration(
+                          isDense: true,
+                          border: InputBorder.none,
+                          hintStyle: AppTextStyles.kNoteViewTitleHintStyle,
+                          hintText: AppStrings.kNoteTitleHint,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppPaddings.kNoteViewHorizontalPadding,
+                        ),
+                        child: TextFormField(
+                          readOnly: widget.note.isArchived,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return AppStrings.kNoteEmptyContentError;
+                            }
+                            if (value.length > 1000) {
+                              return AppStrings.kNoteLengthError;
+                            }
+                            return null;
+                          },
+                          onChanged: (value) => setState(() {}),
+                          controller: _contentController,
+                          keyboardType: TextInputType.multiline,
+                          minLines: 1,
+                          maxLines: null,
+                          style: AppTextStyles.kNoteViewContentStyle,
+                          decoration: const InputDecoration(
+                            isDense: true,
+                            border: InputBorder.none,
+                            hintStyle: AppTextStyles.kNoteViewContentHintStyle,
+                            hintText: AppStrings.kNoteContentHint,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return const Center(
+              child: CircularProgressIndicator(
+                color: AppColors.kMainAccentColor,
+              ),
+            );
+          }
+        ),
       ),
     );
   }

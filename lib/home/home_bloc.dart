@@ -1,7 +1,8 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:notes_app/repositories/note_repository.dart';
+import 'package:notes_app/resources/app_strings.dart';
 import 'home_event.dart';
 import 'home_state.dart';
-import 'package:notes_app/repositories/note_repository.dart';
 
 class HomeBloc extends Bloc<HomeEvent, HomeState> {
   final NoteRepository notesRepository;
@@ -26,7 +27,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       } catch (exception) {
         emit(
           const HomeError(
-            error: 'Wczytanie listy notatek nie powiodło się!',
+            error: AppStrings.kLoadNotesError,
           ),
         );
       }
@@ -40,7 +41,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       } catch (exception) {
         emit(
           const HomeError(
-            error: 'Archiwizacja notatki nie powiodła się!',
+            error: AppStrings.kArchiveNoteError,
           ),
         );
       }
@@ -63,7 +64,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
       } catch (exception) {
         emit(
           const HomeError(
-            error: 'Archiwizacja notatki nie powiodła się!',
+            error: AppStrings.kLoadNotesError,
           ),
         );
       }

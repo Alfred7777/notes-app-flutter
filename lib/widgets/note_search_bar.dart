@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:notes_app/resources/app_strings.dart';
 import 'package:notes_app/resources/app_colors.dart';
 import 'package:notes_app/resources/app_paddings.dart';
 import 'package:notes_app/resources/app_text_styles.dart';
@@ -46,7 +47,7 @@ class NoteSearchBar extends StatelessWidget {
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
-                  hintText: 'Search notes',
+                  hintText: AppStrings.kSearchNotesHint,
                   hintStyle: AppTextStyles.kSearchBarHintStyle,
                 ),
               ),

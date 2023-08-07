@@ -3,17 +3,54 @@ import 'package:notes_app/resources/app_colors.dart';
 import 'package:notes_app/resources/app_strings.dart';
 
 class AppTextStyles {
-  static const TextStyle kNoteTitleStyle = TextStyle(
+  static const TextStyle kNoteCardTitleStyle = TextStyle(
     fontFamily: AppStrings.kDefaultFontName,
     fontWeight: FontWeight.w500,
     fontSize: 13,
     color: AppColors.kPrimaryColor,
   );
-  static TextStyle kNoteContentStyle = TextStyle(
+  static const TextStyle kNoteCardContentStyle = TextStyle(
     fontFamily: AppStrings.kDefaultFontName,
     fontWeight: FontWeight.w300,
     fontSize: 10.5,
-    color: AppColors.kPrimaryColor.withAlpha(180),
+    color: AppColors.kLightPrimaryColor,
+  );
+
+  static const TextStyle kNoteViewTitleStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    color: AppColors.kPrimaryColor,
+  );
+  static const TextStyle kNoteViewTitleHintStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w500,
+    fontSize: 20,
+    color: AppColors.kLightPrimaryColor,
+  );
+  static const TextStyle kNoteViewContentStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w300,
+    fontSize: 16,
+    color: AppColors.kPrimaryColor,
+  );
+  static const TextStyle kNoteViewContentHintStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w300,
+    fontSize: 16,
+    color: AppColors.kLightPrimaryColor,
+  );
+  static const TextStyle kNoteViewDateStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w500,
+    fontSize: 14,
+    color: AppColors.kPrimaryColor,
+  );
+  static const TextStyle kNoteViewButtonTextStyle = TextStyle(
+    fontFamily: AppStrings.kDefaultFontName,
+    fontWeight: FontWeight.w500,
+    fontSize: 16,
+    color: AppColors.kMainBackgroundColor,
   );
 
   static const TextStyle kSearchBarTextStyle = TextStyle(

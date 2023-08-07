@@ -1,9 +1,10 @@
 import 'package:intl/intl.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:notes_app/models/note.dart';
+import 'package:notes_app/resources/app_strings.dart';
 
 class NoteRepository {
-  final _dateFormatter = DateFormat("yyyy-MM-dd").add_Hm();
+  final _dateFormatter = DateFormat(AppStrings.kDefaultDateFormat).add_Hm();
   
   Future<Database> _loadDatabase() async {
     String databasePath = '${await getDatabasesPath()}note.db';
